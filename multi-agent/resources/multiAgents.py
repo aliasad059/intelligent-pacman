@@ -159,7 +159,7 @@ class MinimaxAgent(MultiAgentSearchAgent):
             return currentDepth == self.depth or \
                    not gameState.getLegalActions(agentIndex)
 
-        def maxValue(gameState, currentDepth, agentIndex=0):
+        def maxValue(gameState, currentDepth, agentIndex):
             bestResult = [-999999]
 
             if isTerminalState(gameState, currentDepth, agentIndex):
@@ -181,7 +181,7 @@ class MinimaxAgent(MultiAgentSearchAgent):
 
             return bestResult
 
-        def minValue(gameState, currentDepth, agentIndex=1):
+        def minValue(gameState, currentDepth, agentIndex):
             bestResult = [9999999]
 
             if isTerminalState(gameState, currentDepth, agentIndex):
@@ -231,7 +231,78 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
         Returns the minimax action using self.depth and self.evaluationFunction
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        agentsNum = gameState.getNumAgents()
+
+        def isTerminalState(gameState, currentDepth, agentIndex):
+            return currentDepth == self.depth or \
+                   not gameState.getLegalActions(agentIndex)
+
+        def maxValue(gameState, currentDepth, agentIndex, alpha, beta):
+            bestResult = [-999999]
+
+            if isTerminalState(gameState, currentDepth, agentIndex):
+                bestResult[0] = self.evaluationFunction(gameState)
+                return bestResult
+
+            for a in gameState.getLegalActions(agentIndex=agentIndex):
+                v = bestResult[0]
+                nextResult = minValue(gameState.generateSuccessor(agentIndex=agentIndex, action=a),
+                                      currentDepth, 1, alpha, beta)
+                next_v = nextResult[0]
+                if v < next_v:
+                    bestResult[0] = next_v
+                    try:
+                        bestResult[1] = a
+                    except IndexError:  # for the first iteration, we haven't pushed the action before
+                        bestResult.append(a)
+                if bestResult[0] > beta:
+                    return bestResult
+                alpha = max(alpha, bestResult[0])
+
+            return bestResult
+
+        def minValue(gameState, currentDepth, agentIndex, alpha, beta):
+            bestResult = [9999999]
+
+            if isTerminalState(gameState, currentDepth, agentIndex):
+                bestResult[0] = self.evaluationFunction(gameState)
+                return bestResult
+
+            if agentIndex < agentsNum - 1:  # then we should determine other ghosts' decision
+                for a in gameState.getLegalActions(agentIndex=agentIndex):
+                    v = bestResult[0]
+                    nextResult = minValue(gameState.generateSuccessor(agentIndex=agentIndex, action=a),
+                                          currentDepth, agentIndex + 1, alpha, beta)
+                    next_v = nextResult[0]
+                    if next_v < v:
+                        bestResult[0] = next_v
+                        try:
+                            bestResult[1] = a
+                        except IndexError:  # for the first iteration, we haven't pushed the action before
+                            bestResult.append(a)
+                    if bestResult[0] < alpha:
+                        return bestResult
+                    beta = min(beta, bestResult[0])
+
+            else:  # the next agent is pacman
+                for a in gameState.getLegalActions(agentIndex=agentIndex):
+                    v = bestResult[0]
+                    nextResult = maxValue(gameState.generateSuccessor(agentIndex=agentIndex, action=a),
+                                          currentDepth + 1, 0, alpha, beta)
+                    next_v = nextResult[0]
+                    if next_v < v:
+                        bestResult[0] = next_v
+                        try:
+                            bestResult[1] = a
+                        except IndexError:  # for the first iteration, we haven't pushed the action before
+                            bestResult.append(a)
+                    if bestResult[0] < alpha:
+                        return bestResult
+                    beta = min(beta, bestResult[0])
+            return bestResult
+
+        # second element is the best action
+        return maxValue(gameState, currentDepth=0, agentIndex=0, beta=9999999, alpha=-9999999)[1]
 
 
 class ExpectimaxAgent(MultiAgentSearchAgent):
