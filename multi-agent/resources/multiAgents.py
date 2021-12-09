@@ -318,7 +318,57 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
         legal moves.
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        agentsNum = gameState.getNumAgents()
+
+        def isTerminalState(gameState, currentDepth, agentIndex):
+            return currentDepth == self.depth or \
+                   not gameState.getLegalActions(agentIndex)
+
+        def maxValue(gameState, currentDepth, agentIndex):
+            bestResult = [-999999]
+
+            if isTerminalState(gameState, currentDepth, agentIndex):
+                bestResult[0] = self.evaluationFunction(gameState)
+                return bestResult
+
+            for a in gameState.getLegalActions(agentIndex=agentIndex):
+                v = bestResult[0]
+                nextResult = expValue(gameState.generateSuccessor(agentIndex=agentIndex, action=a), currentDepth,
+                                      agentIndex=1)
+                next_v = nextResult[0]
+                if v < next_v:
+                    bestResult[0] = next_v
+                    try:
+                        bestResult[1] = a
+                    except IndexError:  # for the first iteration, we haven't pushed the action before
+                        bestResult.append(a)
+
+            return bestResult
+
+        def expValue(gameState, currentDepth, agentIndex):
+            bestResult = [0]
+
+            if isTerminalState(gameState, currentDepth, agentIndex):
+                bestResult[0] = self.evaluationFunction(gameState)
+                return bestResult
+
+            if agentIndex < agentsNum - 1:  # then we should determine other ghosts' decision
+                for a in gameState.getLegalActions(agentIndex=agentIndex):
+                    p = 1. / len(gameState.getLegalActions(agentIndex=agentIndex))
+                    v = expValue(gameState.generateSuccessor(agentIndex=agentIndex, action=a), currentDepth,
+                                 agentIndex=agentIndex + 1)
+                    bestResult[0] += p * v[0]
+
+            else:  # the next agent is pacman
+                for a in gameState.getLegalActions(agentIndex=agentIndex):
+                    p = 1. / len(gameState.getLegalActions(agentIndex=agentIndex))
+                    v = maxValue(gameState.generateSuccessor(agentIndex=agentIndex, action=a), currentDepth + 1,
+                                 agentIndex=0)
+                    bestResult[0] += p * v[0]
+
+            return bestResult
+
+        return maxValue(gameState, currentDepth=0, agentIndex=0)[1]  # second element is the best action
 
 
 def betterEvaluationFunction(currentGameState):
