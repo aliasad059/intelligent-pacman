@@ -377,9 +377,38 @@ def betterEvaluationFunction(currentGameState):
     evaluation function (question 5).
 
     DESCRIPTION: <write something here so we know what you did>
+    The key to win is hunting ghost rather than eating foods!
+    I gave fairly big weight for when the ghost are scared (adding it at return statement), so the pacman tends to go and stay near capsules.
+    Then, when the ghost comes near, pacman eats the capsule and the ghost!
+    poor ghost! :(
+    The code is exactly the same as the q1's evaluation function but uses currentGameState rather than successorGameState.
     """
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    from util import manhattanDistance as mDist
+    newPos = currentGameState.getPacmanPosition()
+    newFoodPos = (currentGameState.getFood()).asList()
+    newGhostStates = currentGameState.getGhostStates()
+    newGhostPos = [ghostState.getPosition() for ghostState in newGhostStates]
+    newScaredTimes = [ghostState.scaredTimer for ghostState in newGhostStates]
+
+    evaluatedValue = 0
+    for foodDist in newFoodPos:
+        dist = mDist(newPos, foodDist)
+        if dist < 5:
+            evaluatedValue += 6 - dist
+        else:
+            evaluatedValue += 1
+
+    for ghostDist in newGhostPos:
+        dist = mDist(newPos, ghostDist)
+        if dist == 0:
+            evaluatedValue = -1 * evaluatedValue
+        elif dist < 5:
+            evaluatedValue -= (6 - dist) * 1.5
+        else:
+            evaluatedValue += 1
+
+    return currentGameState.getScore() + evaluatedValue + sum(newScaredTimes)
 
 
 # Abbreviation
