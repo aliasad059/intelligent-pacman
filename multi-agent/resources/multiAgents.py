@@ -377,8 +377,8 @@ def betterEvaluationFunction(currentGameState):
     evaluation function (question 5).
 
     DESCRIPTION: <write something here so we know what you did>
-    The key to win is hunting ghost rather than eating foods!
-    I gave fairly big weight for when the ghost are scared (adding it at return statement), so the pacman tends to go and stay near capsules.
+    The key to win is hunting ghosts rather than eating foods!
+    I gave fairly big weight for when the ghosts are scared (adding it at return statement), so the pacman tends to go and stay near capsules.
     Then, when the ghost comes near, pacman eats the capsule and the ghost!
     poor ghost! :(
     The code is exactly the same as the q1's evaluation function but uses currentGameState rather than successorGameState.
