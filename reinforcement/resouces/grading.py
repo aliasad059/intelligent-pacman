@@ -15,6 +15,7 @@
 "Common code for autograders"
 
 import cgi
+import html
 import time
 import sys
 import json
@@ -76,9 +77,8 @@ class Grades:
             if self.mute:
                 util.mutePrint()
             try:
-                util.TimeoutFunction(getattr(gradingModule, q), 1800)(
-                    self)  # Call the question's function
-                # TimeoutFunction(getattr(gradingModule, q),1200)(self) # Call the question's function
+                util.TimeoutFunction(getattr(gradingModule, q), 1800)(self)  # Call the question's function
+                #TimeoutFunction(getattr(gradingModule, q),1200)(self) # Call the question's function
             except Exception as inst:
                 self.addExceptionMessage(q, inst, traceback)
                 self.addErrorHints(exceptionMap, inst, q[1])
@@ -298,7 +298,7 @@ to follow your instructor's guidelines to receive credit on your project.
             print('*** ' + message)
             if self.mute:
                 util.mutePrint()
-            message = cgi.escape(message)
+            message = html.escape(message)
         self.messages[self.currentQuestion].append(message)
 
     def addMessageToEmail(self, message):
