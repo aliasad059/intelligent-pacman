@@ -150,7 +150,8 @@ class AsynchronousValueIterationAgent(ValueIterationAgent):
         states = self.mdp.getStates()
         S = len(states)
         for i in range(self.iterations):
-            state = states[i % S]  # start updating states from 0 to S-1, then repeat
+            turn = i % S   # start updating states from 0 to S-1, then repeat
+            state = states[turn]
             if not self.mdp.isTerminal(state) and self.mdp.getPossibleActions(state):
                 self.values[state] = self.computeQValueFromValues(state, self.getPolicy(state))
 
@@ -173,4 +174,40 @@ class PrioritizedSweepingValueIterationAgent(AsynchronousValueIterationAgent):
 
     def runValueIteration(self):
         "*** YOUR CODE HERE ***"
+        states = self.mdp.getStates()
+        predecessors = util.Counter()
 
+        for state in states:
+            if not self.mdp.isTerminal(state):
+                predecessors[state] = set()
+
+        for state in states:    # step 1: find all the predecessors of the 'state'
+            if not self.mdp.isTerminal(state):
+                for action in self.mdp.getPossibleActions(state):
+                    T = self.mdp.getTransitionStatesAndProbs(state, action)
+                    for nextState, prob in T:
+                        if not self.mdp.isTerminal(nextState) and prob != 0:
+                            predecessors[nextState].add(state)
+
+        priority_queue = util.PriorityQueue()  # step 2: create an empty priority queue to keep each state's priority
+
+        for state in states:    # step 3: push states into the priority queue with the priority of -diff
+            if not self.mdp.isTerminal(state):
+                Q = self.computeQValueFromValues(state, self.getPolicy(state))
+                diff = abs(Q - self.values[state])
+                priority_queue.push(state, -diff)
+
+        for i in range(self.iterations):  # step 4: do iterations
+            if priority_queue.isEmpty():
+                return
+
+            state = priority_queue.pop()  # note that the 'state' would not be a terminal state as we checked when we created the predecessors
+
+            self.values[state] = self.computeQValueFromValues(state, self.getPolicy(state))
+
+            for predecessor in predecessors[state]:  # update each predecessor's priority of the state
+                Q = self.computeQValueFromValues(predecessor, self.getPolicy(predecessor))
+                diff = abs(Q - self.values[predecessor])
+
+                if diff > self.theta:
+                    priority_queue.update(predecessor, -diff)
